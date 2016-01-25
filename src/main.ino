@@ -35,8 +35,8 @@ float read_temperature(){
     temp += analogRead(TEMP_PIN_IN);// read the temperature
   }
   digitalWrite(TEMP_PIN_OUT, LOW);  // stop the thermometer
-  return temp/10;                   // return the everage temperature
   display_read_ready(TEMP_PIN_IN);
+  return temp/10;                   // return the everage temperature
 }
 
 /**
