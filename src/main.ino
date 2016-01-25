@@ -1,24 +1,28 @@
-const int READING_PIN =   13;     // LED to display metering
-const int TEMP_PIN_OUT =  7;      // Pin for VCC to the thermometer
-                                  // For Power Save it should not be online
-                                  // all the time
-const int TEMP_PIN_IN =   A0;     // Input of thermometer
+const int READING_PIN =     13;     // LED to display metering
+const int TEMP_PIN_OUT =    7;      // Pin for VCC to the thermometer
+                                    // For Power Save it should not be online
+                                    // all the time
+const int TEMP_PIN_IN =     A0;     // Input of thermometer
+const int MOISTURE_PIN_IN = A1;     // Input of moisture sensor
 
 void setup(){
   Serial.begin(9600);
   pinMode(READING_PIN, OUTPUT);
   pinMode(TEMP_PIN_OUT, OUTPUT);
-  digitalWrite(TEMP_PIN_OUT, HIGH);
 }
 
 void loop() {
+  // Temperatur
   float temperatur_val = read_temperature();
   int temperatur = map(temperatur_val, 0, 410, -50, 150);
+  Serial.print("Temperatur: ");
   Serial.print(temperatur);
-  Serial.print("C - ");
-  Serial.print(temperatur_val);
-  Serial.println(" read");
-  delay(2000);
+  Serial.println(" C");
+  // Moisture
+  int moisture_val = read_moisture();
+  Serial.print("Moisture: ");
+  Serial.println(moisture_val);
+  delay(5000);
 }
 
 /**
@@ -37,6 +41,27 @@ float read_temperature(){
   digitalWrite(TEMP_PIN_OUT, LOW);  // stop the thermometer
   display_read_ready(TEMP_PIN_IN);
   return temp/10;                   // return the everage temperature
+}
+
+/**
+ * Read moisture from sensor
+ * @return {float} moisture value
+ */
+int read_moisture(){
+  display_read(MOISTURE_PIN_IN);
+  int mois = analogRead(MOISTURE_PIN_IN);
+  display_read_ready(MOISTURE_PIN_IN);
+  return moisture_state(mois);
+}
+
+int moisture_state(int moisture_val){
+  if (moisture_val < 370){
+    return 1; // to wet
+  } else if (moisture_val >=370 && moisture_val < 600) {
+    return 2; // perfect
+  } else {
+    return 3; // to dry
+  }
 }
 
 /**
@@ -71,6 +96,9 @@ String identify_element(int what){
   switch (what){
     case TEMP_PIN_IN:
       readElement = "Temperature";
+      break;
+    case MOISTURE_PIN_IN:
+      readElement = "Moisture";
       break;
     default:
       readElement = String(what);
